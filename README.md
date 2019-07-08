@@ -50,7 +50,8 @@ sudo usermod -a -G dialout <your_user>
 ```
 cd ESP-Homekit-IRHub/ir_hub
 ```
-You can compile it using:
+You need to copy `config.h.example` to `config.h`, and edit it with the SSID and password of your 2.4GHz Wi-Fi.
+Then you can compile it using:
 ```
 make
 ```
