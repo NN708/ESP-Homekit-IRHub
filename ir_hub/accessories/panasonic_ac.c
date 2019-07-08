@@ -3,6 +3,7 @@
 #include "transmit.h"
 #include "panasonic_ac.h"
 #include "thermostat.h"
+#include "../utilities/homekit_utility.h"
 #include "../utilities/error_handler.h"
 
 void panasonic_ac_heating_cooling_state_callback(homekit_characteristic_t *characteristic, homekit_value_t value, void *context);
@@ -34,28 +35,15 @@ void panasonic_ac_init(homekit_accessory_t* accessory) {
         error_handler("Memory allocation failed.");
         return;
     }
-    homekit_characteristic_change_callback_t* callback;
     characteristics[0] = NEW_HOMEKIT_CHARACTERISTIC(CURRENT_HEATING_COOLING_STATE, 0);
     characteristics[1] = NEW_HOMEKIT_CHARACTERISTIC(TARGET_HEATING_COOLING_STATE, 0);
-    callback = calloc(1, sizeof(homekit_characteristic_change_callback_t));
-    if(!callback) {
-        error_handler("Memory allocation failed.");
-        return;
-    }
-    callback->function = panasonic_ac_heating_cooling_state_callback;
-    characteristics[1]->callback = callback;
+    characteristics[1]->callback = new_homekit_callback(panasonic_ac_heating_cooling_state_callback);
     characteristics[2] = NEW_HOMEKIT_CHARACTERISTIC(CURRENT_TEMPERATURE, 25);
     characteristics[3] = NEW_HOMEKIT_CHARACTERISTIC(TARGET_TEMPERATURE, 25);
     *(characteristics[3]->min_value) = 16.0f;
     *(characteristics[3]->max_value) = 30.0f;
     *(characteristics[3]->min_step) = 1.0f;
-    callback = calloc(1, sizeof(homekit_characteristic_change_callback_t));
-    if(!callback) {
-        error_handler("Memory allocation failed.");
-        return;
-    }
-    callback->function = panasonic_ac_target_temperature_callback;
-    characteristics[3]->callback = callback;
+    characteristics[3]->callback = new_homekit_callback(panasonic_ac_target_temperature_callback);
     characteristics[4] = NEW_HOMEKIT_CHARACTERISTIC(TEMPERATURE_DISPLAY_UNITS, 0);
     characteristics[5] = NEW_HOMEKIT_CHARACTERISTIC(NAME, "Thermostat");
     characteristics[6] = NULL;
@@ -127,18 +115,14 @@ void panasonic_ac_transmit_16(uint16_t code) {
     transmit_clear_time();
     transmit_mark(header_mark);
     transmit_space(header_space);
-    transmit_code(high, 8, bit_mark, zero_space, one_space);
-    transmit_code(high, 8, bit_mark, zero_space, one_space);
-    transmit_code(low, 8, bit_mark, zero_space, one_space);
-    transmit_code(low, 8, bit_mark, zero_space, one_space);
-    transmit_mark(header_mark);
-    transmit_space(header_space);
-    transmit_code(high, 8, bit_mark, zero_space, one_space);
-    transmit_code(high, 8, bit_mark, zero_space, one_space);
-    transmit_code(low, 8, bit_mark, zero_space, one_space);
-    transmit_code(low, 8, bit_mark, zero_space, one_space);
-    transmit_mark(header_mark);
-    transmit_space(header_space);
+    for(uint8_t i = 0; i < 2; i++) {
+        transmit_code(high, 8, bit_mark, zero_space, one_space);
+        transmit_code(high, 8, bit_mark, zero_space, one_space);
+        transmit_code(low, 8, bit_mark, zero_space, one_space);
+        transmit_code(low, 8, bit_mark, zero_space, one_space);
+        transmit_mark(header_mark);
+        transmit_space(header_space);
+    }
     transmit_mark(bit_mark);
     transmit_space(footer_space);
 }
