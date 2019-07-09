@@ -6,6 +6,15 @@
 #include "../utilities/homekit_utility.h"
 #include "../utilities/error_handler.h"
 
+/* estimated value */
+#define CARRIER_FREQUENCY 38000
+#define HEADER_MARK 3500
+#define HEADER_SPACE 3500
+#define BIT_MARK 870
+#define ZERO_SPACE 870
+#define ONE_SPACE 2600
+#define FOOTER_SPACE 13900
+
 void panasonic_ac_heating_cooling_state_callback(homekit_characteristic_t *characteristic, homekit_value_t value, void *context);
 void panasonic_ac_target_temperature_callback(homekit_characteristic_t *characteristic, homekit_value_t value, void *context);
 
@@ -16,7 +25,7 @@ void panasonic_ac_transmit_16(uint16_t code);
 
 void panasonic_ac_init(homekit_accessory_t* accessory) {
     thermostat_init(accessory);
-    
+
     homekit_service_t* service;
     homekit_characteristic_t** characteristics;
 
@@ -28,7 +37,7 @@ void panasonic_ac_init(homekit_accessory_t* accessory) {
     characteristics[4] = NEW_HOMEKIT_CHARACTERISTIC(SERIAL_NUMBER, "01");
     characteristics[5] = NEW_HOMEKIT_CHARACTERISTIC(FIRMWARE_REVISION, "0.1");
     characteristics[6] = NULL;
-    
+
     service = accessory->services[1];
     characteristics = malloc(sizeof(homekit_characteristic_t*) * 7);
     if(!characteristics) {
@@ -98,31 +107,24 @@ uint32_t panasonic_ac_encode(homekit_accessory_t* accessory, bool toggle_power) 
 }
 
 void panasonic_ac_transmit(uint32_t code) {
-    transmit_set_carrier(38000);
+    transmit_set_carrier(CARRIER_FREQUENCY);
     uint16_t high = code >> 16, low = code;
     panasonic_ac_transmit_16(high);
     panasonic_ac_transmit_16(low);
 }
 void panasonic_ac_transmit_16(uint16_t code) {
-    uint16_t header_mark = 3500;
-    uint16_t header_space = 3500;
-    uint16_t bit_mark = 870;
-    uint16_t zero_space = 870;
-    uint16_t one_space = 2600;
-    uint16_t footer_space = 13900;
-
     uint8_t high = code >> 8, low = code;
     transmit_clear_time();
-    transmit_mark(header_mark);
-    transmit_space(header_space);
+    transmit_mark(HEADER_MARK);
+    transmit_space(HEADER_SPACE);
     for(uint8_t i = 0; i < 2; i++) {
-        transmit_code(high, 8, bit_mark, zero_space, one_space);
-        transmit_code(high, 8, bit_mark, zero_space, one_space);
-        transmit_code(low, 8, bit_mark, zero_space, one_space);
-        transmit_code(low, 8, bit_mark, zero_space, one_space);
-        transmit_mark(header_mark);
-        transmit_space(header_space);
+        transmit_code(high, 8, BIT_MARK, ZERO_SPACE, ONE_SPACE);
+        transmit_code(high, 8, BIT_MARK, ZERO_SPACE, ONE_SPACE);
+        transmit_code(low, 8, BIT_MARK, ZERO_SPACE, ONE_SPACE);
+        transmit_code(low, 8, BIT_MARK, ZERO_SPACE, ONE_SPACE);
+        transmit_mark(HEADER_MARK);
+        transmit_space(HEADER_SPACE);
     }
-    transmit_mark(bit_mark);
-    transmit_space(footer_space);
+    transmit_mark(BIT_MARK);
+    transmit_space(FOOTER_SPACE);
 }
