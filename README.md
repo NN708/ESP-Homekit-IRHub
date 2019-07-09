@@ -73,3 +73,13 @@ Then debug through serial port:
 ```
 make monitor
 ```
+
+## To-do
+
++ Instead of defined in config.h, design a web page for users to input their Wi-Fi configuration.
+
++ Store accessory information in flash, to make users able to add or delete accessories without editing source code.
+
+## License
+
+Licensed under the [MIT](https://opensource.org/licenses/MIT) license.
