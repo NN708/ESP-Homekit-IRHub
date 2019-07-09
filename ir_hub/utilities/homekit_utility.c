@@ -8,7 +8,7 @@ homekit_characteristic_change_callback_t* new_homekit_callback(homekit_character
     callback = calloc(1, sizeof(homekit_characteristic_change_callback_t));
     if(!callback) {
         error_handler("Memory allocation failed.");
-        return;
+        return NULL;
     }
     callback->function = function;
     return callback;
