@@ -5,9 +5,9 @@ PROGRAM_INC_DIR = . ./accessories ./utilities
 EXTRA_COMPONENTS = \
 	extras/http-parser \
 	extras/pwm \
-	$(DEMO_PATH)/components/common/wolfssl \
-	$(DEMO_PATH)/components/common/cJSON \
-	$(DEMO_PATH)/components/common/homekit
+	../components/wolfssl \
+	../components/cJSON \
+	../components/homekit
 
 FLASH_SIZE ?= 32
 
