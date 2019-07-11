@@ -75,6 +75,8 @@ make monitor
 
 + Store accessory information in flash, to make users able to add or delete accessories without editing source code.
 
++ Add more accessories, and let users download accessory configurations from online servers.
+
 ## License
 
 Licensed under the [MIT](https://opensource.org/licenses/MIT) license.
