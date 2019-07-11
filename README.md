@@ -57,7 +57,6 @@ git submodule update --init --recursive
 ```
 cd ir_hub
 ```
-You need to copy `config.h.example` to `config.h`, and edit it with the SSID and password of your 2.4GHz Wi-Fi.
 Then you can compile it using:
 ```
 make
