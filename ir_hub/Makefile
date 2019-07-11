@@ -4,14 +4,16 @@ PROGRAM_INC_DIR = . ./accessories ./utilities
 
 EXTRA_COMPONENTS = \
 	extras/http-parser \
+	extras/dhcpserver \
 	extras/pwm \
-	$(DEMO_PATH)/components/common/wolfssl \
-	$(DEMO_PATH)/components/common/cJSON \
-	$(DEMO_PATH)/components/common/homekit
+	../components/esp-wolfssl \
+	../components/esp-cjson \
+	../components/esp-homekit \
+	../components/esp-wifi-config
 
 FLASH_SIZE ?= 32
 
-EXTRA_CFLAGS += -I../.. -DHOMEKIT_SHORT_APPLE_UUIDS
+EXTRA_CFLAGS += -DHOMEKIT_SHORT_APPLE_UUIDS
 
 include $(SDK_PATH)/common.mk
 

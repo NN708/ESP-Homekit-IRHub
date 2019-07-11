@@ -32,21 +32,12 @@ git clone --recursive https://github.com/Superhouse/esp-open-rtos.git
 ```
 Then set environment variable SDK_PATH to the esp-open-rtos directory.
 
-6. Clone [esp-homekit-demo](https://github.com/maximkulkin/esp-homekit-demo/) and sync all submodules:
-```
-git clone https://github.com/maximkulkin/esp-homekit-demo.git
-cd esp-homekit-demo
-git submodule update --init --recursive
-```
-
-7. Set environment variable DEMO_PATH to the esp-homekit-demo directory.
-
-8. For NodeMCU, you need to change the flash mode:
+6. For NodeMCU, you need to change the flash mode:
 ```
 export FLASH_MODE=dout
 ```
 
-9. Connect your ESP8266 to your computer, then set environment variable ESPPORT pointing to your ESP8266, for example:
+7. Connect your ESP8266 to your computer, then set environment variable ESPPORT pointing to your ESP8266, for example:
 ```
 export ESPPORT=/dev/ttyUSB0
 ```
@@ -55,11 +46,17 @@ And make sure you can write to it by adding your user to group dialout:
 sudo usermod -a -G dialout <your_user>
 ```
 
-10. Finally, clone this repository to your computer, and change to ir_hub directory:
+8. Clone this repository and sync all submodules:
 ```
-cd ESP-Homekit-IRHub/ir_hub
+git clone https://github.com/NN708/ESP-Homekit-IRHub.git
+cd ESP-Homekit-IRHub
+git submodule update --init --recursive
 ```
-You need to copy `config.h.example` to `config.h`, and edit it with the SSID and password of your 2.4GHz Wi-Fi.
+
+9. Change to ir_hub directory:
+```
+cd ir_hub
+```
 Then you can compile it using:
 ```
 make
