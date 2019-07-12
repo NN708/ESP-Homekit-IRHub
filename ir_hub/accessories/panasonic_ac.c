@@ -3,7 +3,6 @@
 #include "transmit.h"
 #include "panasonic_ac.h"
 #include "thermostat.h"
-#include "../utilities/homekit_utility.h"
 #include "../utilities/error_handler.h"
 
 /* estimated value */
@@ -45,14 +44,12 @@ void panasonic_ac_init(homekit_accessory_t* accessory) {
         return;
     }
     characteristics[0] = NEW_HOMEKIT_CHARACTERISTIC(CURRENT_HEATING_COOLING_STATE, 0);
-    characteristics[1] = NEW_HOMEKIT_CHARACTERISTIC(TARGET_HEATING_COOLING_STATE, 0);
-    characteristics[1]->callback = new_homekit_callback(panasonic_ac_heating_cooling_state_callback);
+    characteristics[1] = NEW_HOMEKIT_CHARACTERISTIC(TARGET_HEATING_COOLING_STATE, 0, .callback=HOMEKIT_CHARACTERISTIC_CALLBACK(panasonic_ac_heating_cooling_state_callback));
     characteristics[2] = NEW_HOMEKIT_CHARACTERISTIC(CURRENT_TEMPERATURE, 25);
-    characteristics[3] = NEW_HOMEKIT_CHARACTERISTIC(TARGET_TEMPERATURE, 25);
+    characteristics[3] = NEW_HOMEKIT_CHARACTERISTIC(TARGET_TEMPERATURE, 25, .callback=HOMEKIT_CHARACTERISTIC_CALLBACK(panasonic_ac_target_temperature_callback));
     *(characteristics[3]->min_value) = 16.0f;
     *(characteristics[3]->max_value) = 30.0f;
     *(characteristics[3]->min_step) = 1.0f;
-    characteristics[3]->callback = new_homekit_callback(panasonic_ac_target_temperature_callback);
     characteristics[4] = NEW_HOMEKIT_CHARACTERISTIC(TEMPERATURE_DISPLAY_UNITS, 0);
     characteristics[5] = NEW_HOMEKIT_CHARACTERISTIC(NAME, "Thermostat");
     characteristics[6] = NULL;
