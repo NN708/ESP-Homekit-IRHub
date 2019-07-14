@@ -36,4 +36,5 @@ void gpio_intr_handler(uint8_t gpio_num)
             sdk_system_restart();
         }
     }
+    sdk_os_delay_us(100);
 }
