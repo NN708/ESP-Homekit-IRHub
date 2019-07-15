@@ -2,6 +2,8 @@
 
 A Homekit-enabled IR hub to control all your IR devices.
 
+<p align="center"><img src="https://gitee.com/nn708/images/raw/master/ir_hub.jpg" width=300></p>
+
 ## Quick start (not really quick)
 
 1. It is recommended to use [Ubuntu](https://ubuntu.com/), although it may work on other opreating systems.
