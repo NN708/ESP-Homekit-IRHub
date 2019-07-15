@@ -2,8 +2,8 @@
 
 #include "transmit.h"
 #include "panasonic_ac.h"
-#include "thermostat.h"
 #include "../utilities/error_handler.h"
+#include "../utilities/homekit_utility.h"
 
 /* estimated value */
 #define CARRIER_FREQUENCY 38000
@@ -14,6 +14,7 @@
 #define ONE_SPACE 2600
 #define FOOTER_SPACE 13900
 
+void panasonic_ac_identify(homekit_value_t _value);
 void panasonic_ac_heating_cooling_state_callback(homekit_characteristic_t *characteristic, homekit_value_t value, void *context);
 void panasonic_ac_target_temperature_callback(homekit_characteristic_t *characteristic, homekit_value_t value, void *context);
 
@@ -23,37 +24,26 @@ void panasonic_ac_transmit(uint32_t code);
 void panasonic_ac_transmit_16(uint16_t code);
 
 void panasonic_ac_init(homekit_accessory_t* accessory) {
-    thermostat_init(accessory);
+    accessory->category = homekit_accessory_category_thermostat;
+    homekit_add_service(accessory, NEW_HOMEKIT_SERVICE(ACCESSORY_INFORMATION));
+    homekit_add_service(accessory, NEW_HOMEKIT_SERVICE(THERMOSTAT, .primary=true));
 
-    homekit_service_t* service;
-    homekit_characteristic_t** characteristics;
+    homekit_add_characteristic(accessory->services[0], NEW_HOMEKIT_CHARACTERISTIC(IDENTIFY, panasonic_ac_identify));
+    homekit_add_characteristic(accessory->services[0], NEW_HOMEKIT_CHARACTERISTIC(MANUFACTURER, "Ob"));
+    homekit_add_characteristic(accessory->services[0], NEW_HOMEKIT_CHARACTERISTIC(MODEL, "ObAC1"));
+    homekit_add_characteristic(accessory->services[0], NEW_HOMEKIT_CHARACTERISTIC(NAME, "Thermostat"));
+    homekit_add_characteristic(accessory->services[0], NEW_HOMEKIT_CHARACTERISTIC(SERIAL_NUMBER, "01"));
+    homekit_add_characteristic(accessory->services[0], NEW_HOMEKIT_CHARACTERISTIC(FIRMWARE_REVISION, "0.1"));
 
-    service = accessory->services[0];
-    characteristics = service->characteristics;
-    characteristics[1] = NEW_HOMEKIT_CHARACTERISTIC(MANUFACTURER, "Ob");
-    characteristics[2] = NEW_HOMEKIT_CHARACTERISTIC(MODEL, "ObAC1");
-    characteristics[3] = NEW_HOMEKIT_CHARACTERISTIC(NAME, "Thermostat");
-    characteristics[4] = NEW_HOMEKIT_CHARACTERISTIC(SERIAL_NUMBER, "01");
-    characteristics[5] = NEW_HOMEKIT_CHARACTERISTIC(FIRMWARE_REVISION, "0.1");
-    characteristics[6] = NULL;
-
-    service = accessory->services[1];
-    characteristics = malloc(sizeof(homekit_characteristic_t*) * 7);
-    if(!characteristics) {
-        error_handler("Memory allocation failed.");
-        return;
-    }
-    characteristics[0] = NEW_HOMEKIT_CHARACTERISTIC(CURRENT_HEATING_COOLING_STATE, 0);
-    characteristics[1] = NEW_HOMEKIT_CHARACTERISTIC(TARGET_HEATING_COOLING_STATE, 0, .callback=HOMEKIT_CHARACTERISTIC_CALLBACK(panasonic_ac_heating_cooling_state_callback));
-    characteristics[2] = NEW_HOMEKIT_CHARACTERISTIC(CURRENT_TEMPERATURE, 25);
-    characteristics[3] = NEW_HOMEKIT_CHARACTERISTIC(TARGET_TEMPERATURE, 25, .callback=HOMEKIT_CHARACTERISTIC_CALLBACK(panasonic_ac_target_temperature_callback));
-    *(characteristics[3]->min_value) = 16.0f;
-    *(characteristics[3]->max_value) = 30.0f;
-    *(characteristics[3]->min_step) = 1.0f;
-    characteristics[4] = NEW_HOMEKIT_CHARACTERISTIC(TEMPERATURE_DISPLAY_UNITS, 0);
-    characteristics[5] = NEW_HOMEKIT_CHARACTERISTIC(NAME, "Thermostat");
-    characteristics[6] = NULL;
-    service->characteristics = characteristics;
+    homekit_add_characteristic(accessory->services[1], NEW_HOMEKIT_CHARACTERISTIC(CURRENT_HEATING_COOLING_STATE, 0));
+    homekit_add_characteristic(accessory->services[1], NEW_HOMEKIT_CHARACTERISTIC(TARGET_HEATING_COOLING_STATE, 0, .callback=HOMEKIT_CHARACTERISTIC_CALLBACK(panasonic_ac_heating_cooling_state_callback)));
+    homekit_add_characteristic(accessory->services[1], NEW_HOMEKIT_CHARACTERISTIC(CURRENT_TEMPERATURE, 25));
+    homekit_add_characteristic(accessory->services[1], NEW_HOMEKIT_CHARACTERISTIC(TARGET_TEMPERATURE, 25, .callback=HOMEKIT_CHARACTERISTIC_CALLBACK(panasonic_ac_target_temperature_callback)));
+    *(accessory->services[1]->characteristics[3]->min_value) = 16.0f;
+    *(accessory->services[1]->characteristics[3]->max_value) = 30.0f;
+    *(accessory->services[1]->characteristics[3]->min_step) = 1.0f;
+    homekit_add_characteristic(accessory->services[1], NEW_HOMEKIT_CHARACTERISTIC(TEMPERATURE_DISPLAY_UNITS, 0));
+    homekit_add_characteristic(accessory->services[1], NEW_HOMEKIT_CHARACTERISTIC(NAME, "Thermostat"));
 }
 
 void panasonic_ac_heating_cooling_state_callback(homekit_characteristic_t *characteristic, homekit_value_t value, void *context) {
@@ -124,4 +114,8 @@ void panasonic_ac_transmit_16(uint16_t code) {
     }
     transmit_mark(BIT_MARK);
     transmit_space(FOOTER_SPACE);
+}
+
+void panasonic_ac_identify(homekit_value_t _value) {
+    printf("Panasonic AC identify\n");
 }
