@@ -1,4 +1,4 @@
 #include <homekit/homekit.h>
 #include <homekit/characteristics.h>
 
-homekit_accessory_t** accessories_init();
+void accessories_init(homekit_server_config_t* config);

@@ -1,8 +1,5 @@
 #include "espressif/esp_common.h"
 #include "esp/uart.h"
-#include "FreeRTOS.h"
-#include "task.h"
-#include "esp8266.h"
 
 #include <wifi_config.h>
 #include "utilities/error_handler.h"
@@ -24,8 +21,8 @@ void user_init(void) {
 
 void on_wifi_event(wifi_config_event_t event) {
     if(event == WIFI_CONFIG_CONNECTED) {
-        config.accessories = accessories_init();
         config.password = "111-11-111";
+        accessories_init(&config);
         homekit_server_init(&config);
     }
 }

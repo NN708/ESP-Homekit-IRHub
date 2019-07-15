@@ -3,6 +3,24 @@
 #include "homekit_utility.h"
 #include "error_handler.h"
 
+void homekit_add_accessory(homekit_server_config_t* config, homekit_accessory_t* accessory) {
+    uint8_t accessory_count = 0;
+    if(config->accessories) {
+        while(config->accessories[accessory_count]) {
+            accessory_count++;
+        }
+    }
+    accessory_count++;
+    config->accessories = realloc(config->accessories, sizeof(homekit_accessory_t*) * (accessory_count + 1));
+    if(!config->accessories) {
+        error_handler("Memory allocation failed.");
+        return;
+    }
+    accessory->id = accessory_count;
+    config->accessories[accessory_count - 1] = accessory;
+    config->accessories[accessory_count] = NULL;
+}
+
 void homekit_add_service(homekit_accessory_t* accessory, homekit_service_t* service) {
     uint8_t service_count = 0;
     if(accessory->services) {
