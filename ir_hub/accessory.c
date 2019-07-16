@@ -12,5 +12,5 @@ void accessories_init(homekit_server_config_t* config) { //TODO: Read accessorie
     bridge_init(config->accessories[0]);
 
     homekit_add_accessory(config, NEW_HOMEKIT_ACCESSORY());
-    panasonic_ac_init(config->accessories[1]);
+    air_conditioner_init(config->accessories[1]);
 }
