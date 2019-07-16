@@ -21,7 +21,7 @@ void homekit_init_task(void *parameters) {
     bridge_init(homekit_server_config.accessories[0]);
 
     homekit_add_accessory(&homekit_server_config, NEW_HOMEKIT_ACCESSORY());
-    air_conditioner_init(homekit_server_config.accessories[1]);
+    panasonic_ac_init(homekit_server_config.accessories[1]);
 
     homekit_server_init(&homekit_server_config);
 
