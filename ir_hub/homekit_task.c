@@ -2,6 +2,9 @@
 #include "FreeRTOS.h"
 #include "task.h"
 
+#include <homekit/homekit.h>
+#include <homekit/characteristics.h>
+
 #include "homekit_task.h"
 #include "utilities/error_handler.h"
 #include "utilities/homekit_utility.h"
@@ -12,9 +15,6 @@
 homekit_server_config_t homekit_server_config;
 
 void homekit_init_task(void *parameters) {
-    uint32_t notificationValue;
-    xTaskNotifyWait(0, 0, &notificationValue, portMAX_DELAY);
-
     homekit_server_config.password = "111-11-111";
 
     homekit_add_accessory(&homekit_server_config, NEW_HOMEKIT_ACCESSORY()); //TODO: Read accessories from flash
