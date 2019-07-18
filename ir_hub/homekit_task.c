@@ -7,6 +7,7 @@
 #include "utilities/homekit_utility.h"
 
 #include "accessories/panasonic_ac.h"
+#include "accessories/air_conditioner.h"
 #include "accessories/bridge.h"
 
 homekit_server_config_t homekit_server_config;
