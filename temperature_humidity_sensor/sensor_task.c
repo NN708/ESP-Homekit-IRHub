@@ -10,6 +10,8 @@
 
 #define SENSOR_PIN 4
 
+void temperature_humidity_sensor_identify(homekit_value_t _value);
+
 /* homekit config */
 homekit_characteristic_t temperature = HOMEKIT_CHARACTERISTIC_(CURRENT_TEMPERATURE, 0);
 homekit_characteristic_t humidity = HOMEKIT_CHARACTERISTIC_(CURRENT_RELATIVE_HUMIDITY, 0);
