@@ -15,9 +15,9 @@
 #define FOOTER_SPACE 13900
 
 void panasonic_ac_identify(homekit_value_t _value);
-void panasonic_ac_target_heating_cooling_state_callback(homekit_characteristic_t *characteristic, homekit_value_t value, void *context);
-void panasonic_ac_target_temperature_callback(homekit_characteristic_t *characteristic, homekit_value_t value, void *context);
-uint32_t panasonic_ac_encode(homekit_accessory_t* accessory, bool toggle_power);
+void panasonic_ac_target_heating_cooling_state_callback(homekit_characteristic_t* characteristic, homekit_value_t value, void* context);
+void panasonic_ac_target_temperature_callback(homekit_characteristic_t* characteristic, homekit_value_t value, void* context);
+uint32_t panasonic_ac_encode(homekit_accessory_t* accessory);
 void panasonic_ac_transmit(uint32_t code);
 void panasonic_ac_transmit_16(uint16_t code);
 uint8_t reverse_bits(uint8_t num, uint8_t length);
@@ -92,8 +92,8 @@ uint32_t panasonic_ac_encode(homekit_accessory_t* accessory) {
 
     bool toggle_power = ((target_state == HEATING_COOLING_STATE_OFF) && (current_state != HEATING_COOLING_STATE_OFF)) || ((current_state == HEATING_COOLING_STATE_OFF) && (target_state != HEATING_COOLING_STATE_OFF));
     if(!toggle_power) code += 1 << 20;
-    code += (uint32_t)state_code << 21;
-    code += (uint32_t)temperature_code << 28;
+    code += state_code << 21;
+    code += temperature_code << 28;
     return code;
 }
 
