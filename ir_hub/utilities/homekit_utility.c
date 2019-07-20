@@ -54,3 +54,20 @@ void homekit_add_characteristic(homekit_service_t* service, homekit_characterist
     service->characteristics[characteristic_count - 1] = characteristic;
     service->characteristics[characteristic_count] = NULL;
 }
+
+void homekit_add_linked_service(homekit_service_t* service1, homekit_service_t* service2) {
+    uint8_t service_count = 0;
+    if(service1->linked) {
+        while(service1->linked[service_count]) {
+            service_count++;
+        }
+    }
+    service_count++;
+    service1->linked = realloc(service1->linked, sizeof(homekit_service_t*) * (service_count + 1));
+    if(!service1->linked) {
+        error_handler("Memory allocation failed.");
+        return;
+    }
+    service1->linked[service_count - 1] = service2;
+    service1->linked[service_count] = NULL;
+}
