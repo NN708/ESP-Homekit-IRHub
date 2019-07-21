@@ -143,26 +143,23 @@ uint32_t panasonic_ac_encode(homekit_accessory_t* accessory) {
 
 void panasonic_ac_transmit(uint32_t code) {
     transmit_set_carrier(CARRIER_FREQUENCY);
-    uint16_t high = code >> 16, low = code;
-    panasonic_ac_transmit_16(high);
-    panasonic_ac_transmit_16(low);
-}
-
-void panasonic_ac_transmit_16(uint16_t code) {
-    uint8_t high = code >> 8, low = code;
-    transmit_clear_time();
-    transmit_mark(HEADER_MARK);
-    transmit_space(HEADER_SPACE);
+    uint16_t code_16[] = {code >> 16, code};
     for(uint8_t i = 0; i < 2; i++) {
-        transmit_code(high, 8, BIT_MARK, ZERO_SPACE, ONE_SPACE);
-        transmit_code(high, 8, BIT_MARK, ZERO_SPACE, ONE_SPACE);
-        transmit_code(low, 8, BIT_MARK, ZERO_SPACE, ONE_SPACE);
-        transmit_code(low, 8, BIT_MARK, ZERO_SPACE, ONE_SPACE);
+        uint8_t code_8[] = {code_16[i] >> 8, code_16[i]};
+        transmit_clear_time();
         transmit_mark(HEADER_MARK);
         transmit_space(HEADER_SPACE);
+        for(uint8_t j = 0; j < 2; j++) {
+            for(uint8_t k = 0; k < 2; k++) {
+                transmit_code(code_8[k], 8, BIT_MARK, ZERO_SPACE, ONE_SPACE);
+                transmit_code(code_8[k], 8, BIT_MARK, ZERO_SPACE, ONE_SPACE);
+            }
+            transmit_mark(HEADER_MARK);
+            transmit_space(HEADER_SPACE);
+        }
+        transmit_mark(BIT_MARK);
+        transmit_space(FOOTER_SPACE);
     }
-    transmit_mark(BIT_MARK);
-    transmit_space(FOOTER_SPACE);
 }
 
 uint8_t reverse_bits(uint8_t num, uint8_t length) {

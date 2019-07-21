@@ -110,9 +110,10 @@ void midea_ac_fan_active_callback(homekit_characteristic_t* characteristic, home
 uint32_t midea_ac_encode(homekit_accessory_t* accessory) {
     uint8_t target_state = accessory->services[1]->characteristics[1]->value.int_value;
     uint8_t target_temperature = (int)accessory->services[1]->characteristics[3]->value.float_value;
+    float rotation_speed = accessory->services[2]->characteristics[2]->value.float_value;
     uint8_t active = accessory->services[2]->characteristics[0]->value.int_value;
     uint32_t code;
-    uint8_t state_code = 0, temperature_code = 0;
+    uint8_t state_code = 0, temperature_code = 0, fan_speed_code = 0;
 
     if(active == ACTIVE_INACTIVE) {
         code = 0xB27BE0; // off state code
@@ -122,29 +123,45 @@ uint32_t midea_ac_encode(homekit_accessory_t* accessory) {
         case HEATING_COOLING_STATE_OFF: // fan mode
             state_code = 1;
             temperature_code = 0xE;
+            fan_speed_code = midea_ac_fan_speed_code[(int)(rotation_speed / 25)];
             break;
         case HEATING_COOLING_STATE_HEAT:
             state_code = 3;
             temperature_code = midea_ac_temperature_code[target_temperature - 17];
+            fan_speed_code = midea_ac_fan_speed_code[(int)(rotation_speed / 25)];
             break;
         case HEATING_COOLING_STATE_COOL:
             state_code = 0;
             temperature_code = midea_ac_temperature_code[target_temperature - 17];
+            fan_speed_code = midea_ac_fan_speed_code[(int)(rotation_speed / 25)];
             break;
         case HEATING_COOLING_STATE_AUTO:
             state_code = 2;
             temperature_code = midea_ac_temperature_code[target_temperature - 17];
+            fan_speed_code = 0;
             break;
         }
         code += state_code << 2;
         code += temperature_code << 4;
+        code += fan_speed_code << 13;
     }
     return code;
 }
 
 void midea_ac_transmit(uint32_t code) {
     transmit_set_carrier(CARRIER_FREQUENCY);
-
+    uint8_t code_8[] = {code >> 16, code >> 8, code};
+    transmit_clear_time();
+    for(uint8_t i = 0; i < 2; i++) {
+        transmit_mark(HEADER_MARK);
+        transmit_space(HEADER_SPACE);
+        for(uint8_t j = 0; j < 3; j++) {
+            transmit_code(code_8[j], 8, BIT_MARK, ZERO_SPACE, ONE_SPACE);
+            transmit_code(!code_8[j], 8, BIT_MARK, ZERO_SPACE, ONE_SPACE);
+        }
+        transmit_mark(BIT_MARK);
+        transmit_space(FOOTER_SPACE);
+    }
 }
 
 void midea_ac_update_characteristic(homekit_accessory_t* accessory) {
