@@ -18,14 +18,13 @@ void panasonic_ac_identify(homekit_value_t _value);
 void panasonic_ac_target_heating_cooling_state_callback(homekit_characteristic_t* characteristic, homekit_value_t value, void* context);
 void panasonic_ac_target_temperature_callback(homekit_characteristic_t* characteristic, homekit_value_t value, void* context);
 void panasonic_ac_fan_active_callback(homekit_characteristic_t* characteristic, homekit_value_t value, void* context);
-void panasonic_ac_fan_rotation_speed_callback(homekit_characteristic_t* characteristic, homekit_value_t value, void* context);
 uint32_t panasonic_ac_encode(homekit_accessory_t* accessory);
 void panasonic_ac_transmit(uint32_t code);
 void panasonic_ac_transmit_16(uint16_t code);
 uint8_t reverse_bits(uint8_t num, uint8_t length);
 void panasonic_ac_update_characteristic(homekit_accessory_t* accessory);
 
-const uint8_t fan_speed_code[] = {0xF, 0x4, 0x2, 0x6};
+const uint8_t panasonic_ac_fan_speed_code[] = {0xF, 0x4, 0x2, 0x6}; // auto, low, medium, high
 
 void panasonic_ac_init(homekit_accessory_t* accessory) {
     accessory->category = homekit_accessory_category_thermostat;
@@ -118,21 +117,26 @@ uint32_t panasonic_ac_encode(homekit_accessory_t* accessory) {
     uint8_t state_code = 0, temperature_code = 0;
 
     uint8_t state = ((target_state != HEATING_COOLING_STATE_OFF) ? target_state : current_state); // when changed to off, read current state
-    if(state == HEATING_COOLING_STATE_OFF || state == HEATING_COOLING_STATE_AUTO) {
+    switch(state) {
+    case HEATING_COOLING_STATE_OFF:
+    case HEATING_COOLING_STATE_AUTO:
         state_code = 3; // auto
         temperature_code = 8;
-    } else if(state == HEATING_COOLING_STATE_HEAT) {
+        break;
+    case HEATING_COOLING_STATE_HEAT:
         state_code = 1; // heat
         temperature_code = reverse_bits(target_temperature - 15, 4);
-    } else if(state == HEATING_COOLING_STATE_COOL) {
+        break;
+    case HEATING_COOLING_STATE_COOL:
         state_code = 2; // cool
         temperature_code = reverse_bits(target_temperature - 15, 4);
+        break;
     }
 
     bool toggle_power = ((target_state == HEATING_COOLING_STATE_OFF) && (current_state != HEATING_COOLING_STATE_OFF)) || ((current_state == HEATING_COOLING_STATE_OFF) && (target_state != HEATING_COOLING_STATE_OFF));
     if(!toggle_power) code += 1 << 20;
     code += state_code << 21;
-    code += fan_speed_code[(int)(rotation_speed / 33)] << 24;
+    code += panasonic_ac_fan_speed_code[(int)(rotation_speed / 33)] << 24;
     code += temperature_code << 28;
     return code;
 }
