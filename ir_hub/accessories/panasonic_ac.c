@@ -18,14 +18,13 @@ void panasonic_ac_identify(homekit_value_t _value);
 void panasonic_ac_target_heating_cooling_state_callback(homekit_characteristic_t* characteristic, homekit_value_t value, void* context);
 void panasonic_ac_target_temperature_callback(homekit_characteristic_t* characteristic, homekit_value_t value, void* context);
 void panasonic_ac_fan_active_callback(homekit_characteristic_t* characteristic, homekit_value_t value, void* context);
-void panasonic_ac_fan_rotation_speed_callback(homekit_characteristic_t* characteristic, homekit_value_t value, void* context);
 uint32_t panasonic_ac_encode(homekit_accessory_t* accessory);
 void panasonic_ac_transmit(uint32_t code);
 void panasonic_ac_transmit_16(uint16_t code);
 uint8_t reverse_bits(uint8_t num, uint8_t length);
 void panasonic_ac_update_characteristic(homekit_accessory_t* accessory);
 
-const uint8_t fan_speed_code[] = {0xF, 0x4, 0x2, 0x6};
+const uint8_t panasonic_ac_fan_speed_code[] = {0xF, 0x4, 0x2, 0x6}; // auto, low, medium, high
 
 void panasonic_ac_init(homekit_accessory_t* accessory) {
     accessory->category = homekit_accessory_category_thermostat;
@@ -50,6 +49,7 @@ void panasonic_ac_init(homekit_accessory_t* accessory) {
     *(accessory->services[1]->characteristics[3]->min_step) = 1.0f;
     homekit_add_characteristic(accessory->services[1], NEW_HOMEKIT_CHARACTERISTIC(TEMPERATURE_DISPLAY_UNITS, TEMPERATURE_DISPLAY_UNITS_CELSIUS));
     homekit_add_characteristic(accessory->services[1], NEW_HOMEKIT_CHARACTERISTIC(NAME, "Thermostat"));
+    homekit_add_characteristic(accessory->services[1], NEW_HOMEKIT_CHARACTERISTIC(CUSTOM, .type="00001918-191B-4D11-9628-FA13C40C7A5E", .description="Current Heating Cooling State Backup", .format=homekit_format_uint8, .permissions=homekit_permissions_paired_read | homekit_permissions_hidden, .value=HOMEKIT_UINT8_(HEATING_COOLING_STATE_OFF))); // store current state (including auto) for toggle power
 
     homekit_add_characteristic(accessory->services[2], NEW_HOMEKIT_CHARACTERISTIC(ACTIVE, ACTIVE_INACTIVE, .callback=HOMEKIT_CHARACTERISTIC_CALLBACK(panasonic_ac_fan_active_callback)));
     homekit_add_characteristic(accessory->services[2], NEW_HOMEKIT_CHARACTERISTIC(NAME, "Fan"));
@@ -110,7 +110,7 @@ void panasonic_ac_fan_active_callback(homekit_characteristic_t* characteristic, 
 }
 
 uint32_t panasonic_ac_encode(homekit_accessory_t* accessory) {
-    uint8_t current_state = accessory->services[1]->characteristics[0]->value.int_value;
+    uint8_t current_state = accessory->services[1]->characteristics[6]->value.int_value; // use the backup value
     uint8_t target_state = accessory->services[1]->characteristics[1]->value.int_value;
     uint8_t target_temperature = (int)accessory->services[1]->characteristics[3]->value.float_value;
     float rotation_speed = accessory->services[2]->characteristics[2]->value.float_value;
@@ -118,47 +118,49 @@ uint32_t panasonic_ac_encode(homekit_accessory_t* accessory) {
     uint8_t state_code = 0, temperature_code = 0;
 
     uint8_t state = ((target_state != HEATING_COOLING_STATE_OFF) ? target_state : current_state); // when changed to off, read current state
-    if(state == HEATING_COOLING_STATE_OFF || state == HEATING_COOLING_STATE_AUTO) {
+    switch(state) {
+    case HEATING_COOLING_STATE_OFF:
+    case HEATING_COOLING_STATE_AUTO:
         state_code = 3; // auto
         temperature_code = 8;
-    } else if(state == HEATING_COOLING_STATE_HEAT) {
+        break;
+    case HEATING_COOLING_STATE_HEAT:
         state_code = 1; // heat
         temperature_code = reverse_bits(target_temperature - 15, 4);
-    } else if(state == HEATING_COOLING_STATE_COOL) {
+        break;
+    case HEATING_COOLING_STATE_COOL:
         state_code = 2; // cool
         temperature_code = reverse_bits(target_temperature - 15, 4);
+        break;
     }
 
     bool toggle_power = ((target_state == HEATING_COOLING_STATE_OFF) && (current_state != HEATING_COOLING_STATE_OFF)) || ((current_state == HEATING_COOLING_STATE_OFF) && (target_state != HEATING_COOLING_STATE_OFF));
     if(!toggle_power) code += 1 << 20;
     code += state_code << 21;
-    code += fan_speed_code[(int)(rotation_speed / 33)] << 24;
+    code += panasonic_ac_fan_speed_code[(int)(rotation_speed / 33)] << 24;
     code += temperature_code << 28;
     return code;
 }
 
 void panasonic_ac_transmit(uint32_t code) {
     transmit_set_carrier(CARRIER_FREQUENCY);
-    uint16_t high = code >> 16, low = code;
-    panasonic_ac_transmit_16(high);
-    panasonic_ac_transmit_16(low);
-}
-
-void panasonic_ac_transmit_16(uint16_t code) {
-    uint8_t high = code >> 8, low = code;
-    transmit_clear_time();
-    transmit_mark(HEADER_MARK);
-    transmit_space(HEADER_SPACE);
+    uint16_t code_16[] = {code >> 16, code};
     for(uint8_t i = 0; i < 2; i++) {
-        transmit_code(high, 8, BIT_MARK, ZERO_SPACE, ONE_SPACE);
-        transmit_code(high, 8, BIT_MARK, ZERO_SPACE, ONE_SPACE);
-        transmit_code(low, 8, BIT_MARK, ZERO_SPACE, ONE_SPACE);
-        transmit_code(low, 8, BIT_MARK, ZERO_SPACE, ONE_SPACE);
+        uint8_t code_8[] = {code_16[i] >> 8, code_16[i]};
+        transmit_clear_time();
         transmit_mark(HEADER_MARK);
         transmit_space(HEADER_SPACE);
+        for(uint8_t j = 0; j < 2; j++) {
+            for(uint8_t k = 0; k < 2; k++) {
+                transmit_code(code_8[k], 8, BIT_MARK, ZERO_SPACE, ONE_SPACE);
+                transmit_code(code_8[k], 8, BIT_MARK, ZERO_SPACE, ONE_SPACE);
+            }
+            transmit_mark(HEADER_MARK);
+            transmit_space(HEADER_SPACE);
+        }
+        transmit_mark(BIT_MARK);
+        transmit_space(FOOTER_SPACE);
     }
-    transmit_mark(BIT_MARK);
-    transmit_space(FOOTER_SPACE);
 }
 
 uint8_t reverse_bits(uint8_t num, uint8_t length) {
@@ -175,7 +177,9 @@ void panasonic_ac_update_characteristic(homekit_accessory_t* accessory) {
     homekit_service_t* thermostat_service = accessory->services[1];
 
     homekit_characteristic_t* current_state_characteristic = thermostat_service->characteristics[0];
+    homekit_characteristic_t* current_state_characteristic_backup = thermostat_service->characteristics[6];
     uint8_t target_state = thermostat_service->characteristics[1]->value.int_value;
+    current_state_characteristic_backup->value = HOMEKIT_UINT8(target_state); // backup the state (including auto)
     if(target_state == HEATING_COOLING_STATE_AUTO) target_state = HEATING_COOLING_STATE_OFF; // auto is not a valid value for current heating cooling state
     current_state_characteristic->value = HOMEKIT_UINT8(target_state);
     homekit_characteristic_notify(current_state_characteristic, current_state_characteristic->value);
