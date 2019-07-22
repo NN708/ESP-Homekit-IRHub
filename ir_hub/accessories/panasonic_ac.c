@@ -49,6 +49,7 @@ void panasonic_ac_init(homekit_accessory_t* accessory) {
     *(accessory->services[1]->characteristics[3]->min_step) = 1.0f;
     homekit_add_characteristic(accessory->services[1], NEW_HOMEKIT_CHARACTERISTIC(TEMPERATURE_DISPLAY_UNITS, TEMPERATURE_DISPLAY_UNITS_CELSIUS));
     homekit_add_characteristic(accessory->services[1], NEW_HOMEKIT_CHARACTERISTIC(NAME, "Thermostat"));
+    homekit_add_characteristic(accessory->services[1], NEW_HOMEKIT_CHARACTERISTIC(CUSTOM, .type="00001918-191B-4D11-9628-FA13C40C7A5E", .description="Current Heating Cooling State Backup", .format=homekit_format_uint8, .permissions=homekit_permissions_paired_read | homekit_permissions_hidden, .value=HOMEKIT_UINT8_(HEATING_COOLING_STATE_OFF))); // store current state (including auto) for toggle power
 
     homekit_add_characteristic(accessory->services[2], NEW_HOMEKIT_CHARACTERISTIC(ACTIVE, ACTIVE_INACTIVE, .callback=HOMEKIT_CHARACTERISTIC_CALLBACK(panasonic_ac_fan_active_callback)));
     homekit_add_characteristic(accessory->services[2], NEW_HOMEKIT_CHARACTERISTIC(NAME, "Fan"));
@@ -109,7 +110,7 @@ void panasonic_ac_fan_active_callback(homekit_characteristic_t* characteristic, 
 }
 
 uint32_t panasonic_ac_encode(homekit_accessory_t* accessory) {
-    uint8_t current_state = accessory->services[1]->characteristics[0]->value.int_value;
+    uint8_t current_state = accessory->services[1]->characteristics[6]->value.int_value; // use the backup value
     uint8_t target_state = accessory->services[1]->characteristics[1]->value.int_value;
     uint8_t target_temperature = (int)accessory->services[1]->characteristics[3]->value.float_value;
     float rotation_speed = accessory->services[2]->characteristics[2]->value.float_value;
@@ -176,7 +177,9 @@ void panasonic_ac_update_characteristic(homekit_accessory_t* accessory) {
     homekit_service_t* thermostat_service = accessory->services[1];
 
     homekit_characteristic_t* current_state_characteristic = thermostat_service->characteristics[0];
+    homekit_characteristic_t* current_state_characteristic_backup = thermostat_service->characteristics[6];
     uint8_t target_state = thermostat_service->characteristics[1]->value.int_value;
+    current_state_characteristic_backup->value = HOMEKIT_UINT8(target_state); // backup the state (including auto)
     if(target_state == HEATING_COOLING_STATE_AUTO) target_state = HEATING_COOLING_STATE_OFF; // auto is not a valid value for current heating cooling state
     current_state_characteristic->value = HOMEKIT_UINT8(target_state);
     homekit_characteristic_notify(current_state_characteristic, current_state_characteristic->value);
