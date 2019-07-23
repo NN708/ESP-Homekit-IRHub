@@ -20,7 +20,7 @@ void user_init(void) {
 }
 
 void on_wifi_event(wifi_config_event_t event) {
-    if(event == WIFI_CONFIG_CONNECTED) {
+    if (event == WIFI_CONFIG_CONNECTED) {
         xTaskCreate(homekit_init_task, "Homekit Init", 640, NULL, 2, NULL);
     }
 }

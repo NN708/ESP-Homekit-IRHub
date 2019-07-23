@@ -20,17 +20,17 @@ void reset_button_init() {
 
 void gpio_intr_handler(uint8_t gpio_num)
 {
-    if(gpio_read(button_gpio)) { // pos
+    if (gpio_read(button_gpio)) { // pos
         press_time = xTaskGetTickCountFromISR();
     } else { // neg
         uint32_t delta_time, now;
         now = xTaskGetTickCountFromISR();
-        if(press_time > now) {
+        if (press_time > now) {
             delta_time = UINT32_MAX - press_time + now;
         } else {
             delta_time = now - press_time;
         }
-        if(delta_time * portTICK_PERIOD_MS >= 5000) { // 5 seconds
+        if (delta_time * portTICK_PERIOD_MS >= 5000) { // 5 seconds
             homekit_server_reset();
             wifi_config_reset();
             sdk_system_restart();

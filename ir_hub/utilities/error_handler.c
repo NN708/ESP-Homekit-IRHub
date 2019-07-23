@@ -12,7 +12,7 @@ void error_led_init() {
 void error_handler(const char* message) {
     printf("Error: %s\n", message);
     gpio_write(led_gpio, false);
-    while(true);
+    while (true);
 }
 
 void warning_handler(const char* message) {

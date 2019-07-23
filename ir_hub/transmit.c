@@ -30,17 +30,17 @@ void transmit_clear_time() {
 }
 void transmit_wait(uint16_t time) {
     target_time += time;
-    if(target_time >= time) {
-        while(sdk_system_get_time() < target_time);
+    if (target_time >= time) {
+        while (sdk_system_get_time() < target_time);
     } else {
-        while(sdk_system_get_time() < target_time || sdk_system_get_time() >= (target_time - time));
+        while (sdk_system_get_time() < target_time || sdk_system_get_time() >= (target_time - time));
     }
 }
 
 void transmit_code(uint32_t code, uint8_t length, uint16_t bit_mark, uint16_t zero_space, uint16_t one_space) {
-    for(uint32_t mask = 1 << (length - 1); mask; mask >>= 1) {
+    for (uint32_t mask = 1 << (length - 1); mask; mask >>= 1) {
         transmit_mark(bit_mark);
-        if(code & mask) {
+        if (code & mask) {
             transmit_space(one_space);
         } else {
             transmit_space(zero_space);

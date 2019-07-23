@@ -70,12 +70,12 @@ void midea_ac_target_heating_cooling_state_callback(homekit_characteristic_t* ch
     homekit_characteristic_t* rotation_speed_characteristic = accessory->services[2]->characteristics[2];
     uint8_t active = active_characteristic->value.int_value;
 
-    if((target_state == HEATING_COOLING_STATE_OFF) && (active == ACTIVE_ACTIVE)) {
+    if ((target_state == HEATING_COOLING_STATE_OFF) && (active == ACTIVE_ACTIVE)) {
         rotation_speed_characteristic->value = HOMEKIT_FLOAT(0.0f);
         active_characteristic->value = HOMEKIT_UINT8(ACTIVE_INACTIVE);
         homekit_characteristic_notify(rotation_speed_characteristic, rotation_speed_characteristic->value);
         homekit_characteristic_notify(active_characteristic, active_characteristic->value);
-    } else if((target_state != HEATING_COOLING_STATE_OFF) && (active == ACTIVE_INACTIVE)) {
+    } else if ((target_state != HEATING_COOLING_STATE_OFF) && (active == ACTIVE_INACTIVE)) {
         rotation_speed_characteristic->value = HOMEKIT_FLOAT(50.0f);
         active_characteristic->value = HOMEKIT_UINT8(ACTIVE_ACTIVE);
         homekit_characteristic_notify(rotation_speed_characteristic, rotation_speed_characteristic->value);
@@ -98,7 +98,7 @@ void midea_ac_fan_active_callback(homekit_characteristic_t* characteristic, home
     homekit_characteristic_t* target_state_characteristic = accessory->services[1]->characteristics[1];
     uint8_t target_state = target_state_characteristic->value.int_value;
 
-    if((active == ACTIVE_INACTIVE) && (target_state != HEATING_COOLING_STATE_OFF)) {
+    if ((active == ACTIVE_INACTIVE) && (target_state != HEATING_COOLING_STATE_OFF)) {
         target_state_characteristic->value = HOMEKIT_UINT8(HEATING_COOLING_STATE_OFF);
         homekit_characteristic_notify(target_state_characteristic, target_state_characteristic->value);
     } else {
@@ -115,11 +115,11 @@ uint32_t midea_ac_encode(homekit_accessory_t* accessory) {
     uint32_t code;
     uint8_t state_code = 0, temperature_code = 0, fan_speed_code = 0;
 
-    if(active == ACTIVE_INACTIVE) {
+    if (active == ACTIVE_INACTIVE) {
         code = 0xB27BE0; // off state code
     } else {
         code = 0xB21F00;
-        switch(target_state) {
+        switch (target_state) {
         case HEATING_COOLING_STATE_OFF: // fan mode
             state_code = 1;
             temperature_code = 0xE;
@@ -152,10 +152,10 @@ void midea_ac_transmit(uint32_t code) {
     transmit_set_carrier(CARRIER_FREQUENCY);
     uint8_t code_8[] = {code >> 16, code >> 8, code};
     transmit_clear_time();
-    for(uint8_t i = 0; i < 2; i++) {
+    for (uint8_t i = 0; i < 2; i++) {
         transmit_mark(HEADER_MARK);
         transmit_space(HEADER_SPACE);
-        for(uint8_t j = 0; j < 3; j++) {
+        for (uint8_t j = 0; j < 3; j++) {
             transmit_code(code_8[j], 8, BIT_MARK, ZERO_SPACE, ONE_SPACE);
             transmit_code(!code_8[j], 8, BIT_MARK, ZERO_SPACE, ONE_SPACE);
         }
@@ -169,7 +169,7 @@ void midea_ac_update_characteristic(homekit_accessory_t* accessory) {
 
     homekit_characteristic_t* current_state_characteristic = thermostat_service->characteristics[0];
     uint8_t target_state = thermostat_service->characteristics[1]->value.int_value;
-    if(target_state == HEATING_COOLING_STATE_AUTO) target_state = HEATING_COOLING_STATE_OFF; // auto is not a valid value for current heating cooling state
+    if (target_state == HEATING_COOLING_STATE_AUTO) target_state = HEATING_COOLING_STATE_OFF; // auto is not a valid value for current heating cooling state
     current_state_characteristic->value = HOMEKIT_UINT8(target_state);
     homekit_characteristic_notify(current_state_characteristic, current_state_characteristic->value);
 
