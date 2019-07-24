@@ -43,18 +43,14 @@ void panasonic_ac_init(homekit_accessory_t* accessory) {
     homekit_add_characteristic(accessory->services[1], NEW_HOMEKIT_CHARACTERISTIC(CURRENT_HEATING_COOLING_STATE, HEATING_COOLING_STATE_OFF));
     homekit_add_characteristic(accessory->services[1], NEW_HOMEKIT_CHARACTERISTIC(TARGET_HEATING_COOLING_STATE, HEATING_COOLING_STATE_OFF, .callback=HOMEKIT_CHARACTERISTIC_CALLBACK(panasonic_ac_target_heating_cooling_state_callback)));
     homekit_add_characteristic(accessory->services[1], NEW_HOMEKIT_CHARACTERISTIC(CURRENT_TEMPERATURE, 25));
-    homekit_add_characteristic(accessory->services[1], NEW_HOMEKIT_CHARACTERISTIC(TARGET_TEMPERATURE, 25, .callback=HOMEKIT_CHARACTERISTIC_CALLBACK(panasonic_ac_target_temperature_callback)));
-    *(accessory->services[1]->characteristics[3]->min_value) = 16.0f;
-    *(accessory->services[1]->characteristics[3]->max_value) = 30.0f;
-    *(accessory->services[1]->characteristics[3]->min_step) = 1.0f;
+    homekit_add_characteristic(accessory->services[1], NEW_HOMEKIT_CHARACTERISTIC(TARGET_TEMPERATURE, 25, .min_value=(float[]){16}, .max_value=(float[]){30}, .min_step=(float[]){1}, .callback=HOMEKIT_CHARACTERISTIC_CALLBACK(panasonic_ac_target_temperature_callback)));
     homekit_add_characteristic(accessory->services[1], NEW_HOMEKIT_CHARACTERISTIC(TEMPERATURE_DISPLAY_UNITS, TEMPERATURE_DISPLAY_UNITS_CELSIUS));
     homekit_add_characteristic(accessory->services[1], NEW_HOMEKIT_CHARACTERISTIC(NAME, "Thermostat"));
     homekit_add_characteristic(accessory->services[1], NEW_HOMEKIT_CHARACTERISTIC(CUSTOM, .type="00001918-191B-4D11-9628-FA13C40C7A5E", .description="Current Heating Cooling State Backup", .format=homekit_format_uint8, .permissions=homekit_permissions_paired_read | homekit_permissions_hidden, .value=HOMEKIT_UINT8_(HEATING_COOLING_STATE_OFF))); // store current state (including auto) for toggle power
 
     homekit_add_characteristic(accessory->services[2], NEW_HOMEKIT_CHARACTERISTIC(ACTIVE, ACTIVE_INACTIVE, .callback=HOMEKIT_CHARACTERISTIC_CALLBACK(panasonic_ac_fan_active_callback)));
     homekit_add_characteristic(accessory->services[2], NEW_HOMEKIT_CHARACTERISTIC(NAME, "Fan"));
-    homekit_add_characteristic(accessory->services[2], NEW_HOMEKIT_CHARACTERISTIC(ROTATION_SPEED, 0));
-    *(accessory->services[2]->characteristics[2]->min_step) = 33.333333f;
+    homekit_add_characteristic(accessory->services[2], NEW_HOMEKIT_CHARACTERISTIC(ROTATION_SPEED, 0, .min_step=(float[]){33.333333}));
 }
 
 
