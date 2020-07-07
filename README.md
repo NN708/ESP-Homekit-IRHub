@@ -51,7 +51,7 @@ A Homekit-enabled IR hub to control all your IR devices.
     ```
     git clone --recursive https://github.com/Superhouse/esp-open-rtos.git
     ```
-    Then set environment variable SDK_PATH to the esp-open-rtos directory.
+    Then set environment variable ESP_OPEN_RTOS to the esp-open-rtos directory.
 6. For NodeMCU, you need to change the flash mode:
     ```
     export FLASH_MODE=dout

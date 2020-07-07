@@ -15,7 +15,7 @@ FLASH_SIZE ?= 32
 
 EXTRA_CFLAGS += -DHOMEKIT_SHORT_APPLE_UUIDS
 
-include $(SDK_PATH)/common.mk
+include $(ESP_OPEN_RTOS)/common.mk
 
 monitor:
 	$(FILTEROUTPUT) --port $(ESPPORT) --baud 115200 --elf $(PROGRAM_OUT)

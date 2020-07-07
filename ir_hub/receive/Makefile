@@ -1,2 +1,2 @@
 PROGRAM = receive
-include $(SDK_PATH)/common.mk
+include $(ESP_OPEN_RTOS)/common.mk
