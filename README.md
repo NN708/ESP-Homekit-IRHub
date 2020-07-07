@@ -11,10 +11,10 @@ A Homekit-enabled IR hub to control all your IR devices.
     ```
     docker run -it nn708/esp-homekit-irhub
     ```
-    > If your host machine runs Linux, you can add parameter `--device=/dev/<tty_on_your_host_machine>:/dev/ttyUSB0 -e ESPPORT=/dev/ttyUSB0` to expose your ESP8266 device to the container. Add `-e FLASH_MODE=dout` if you are using NodeMCU.
+    > If your host machine runs Linux, you can add parameter `--device=/dev/<tty_on_your_host_machine>:/dev/ttyUSB0 -e ESPPORT=/dev/ttyUSB0` to expose your ESP8266 device to the container. In some cases, you need to add `-e FLASH_MODE=dout` (See https://github.com/espressif/esptool/wiki/SPI-Flash-Modes for more information).
 3. In the Docker container, run
     ```
-    cd ESP-Homekit-IRHub/ir_hub
+    cd ir_hub
     make
     ```
     to compile the code. To flash your device, use:
@@ -26,7 +26,7 @@ A Homekit-enabled IR hub to control all your IR devices.
     ```
     make monitor
     ```
-    > If you are using Windows or macOS, copy the directory `/repo/ESP-Homekit-IRHub` onto your host machine and flash it outside of the container.
+    > If you are using Windows or macOS, copy the binary file onto your host machine and flash it outside of the container.
 
 ### Install Manually
 1. It is recommended to use [Ubuntu](https://ubuntu.com/), although it may work on other opreating systems.
@@ -52,7 +52,7 @@ A Homekit-enabled IR hub to control all your IR devices.
     git clone --recursive https://github.com/Superhouse/esp-open-rtos.git
     ```
     Then set environment variable ESP_OPEN_RTOS to the esp-open-rtos directory.
-6. For NodeMCU, you need to change the flash mode:
+6. In some cases, you need to change the flash mode (See https://github.com/espressif/esptool/wiki/SPI-Flash-Modes for more information):
     ```
     export FLASH_MODE=dout
     ```
